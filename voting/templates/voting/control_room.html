@@ -1,0 +1,61 @@
+{% extends "voting/base.html" %}
+{% block title %}Control room{% endblock %}
+{% block head %}<meta http-equiv="refresh" content="15">{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div>
+    <h3 class="mb-0">Admin dashboard</h3>
+    <div class="text-secondary">{% if election %}{{ election.name }} &middot; {{ election.vote_date|date:"d M Y" }}{% else %}No active election{% endif %} &middot; refreshes every 15 s</div>
+  </div>
+  <a class="btn btn-primary" href="{% url 'admin:index' %}">Open admin panel (approve / reject)</a>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-secondary small">Total votes</div><div class="stat">{{ totals.votes }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-secondary small">Local votes</div><div class="stat">{{ totals.local }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-secondary small">Other-place (outstation) votes</div><div class="stat">{{ totals.outstation }}</div></div></div></div>
+  <div class="col-6 col-lg-3"><div class="card"><div class="card-body"><div class="text-secondary small">RFID cards not mapped</div><div class="stat">{{ unmapped_voters }}</div></div></div></div>
+</div>
+
+<h5 class="mt-4">Constituency-wise and candidate-wise counts</h5>
+<div class="row g-3 mb-4">
+{% for row in rows %}
+  <div class="col-lg-6"><div class="card h-100">
+    <div class="card-header d-flex justify-content-between"><span>{{ row.const.name }} <small class="text-secondary">({{ row.const.district.name }})</small></span><span class="badge text-bg-primary">{{ row.total }} votes</span></div>
+    <div class="card-body">
+      {% for c in row.candidates %}
+        <div class="mb-2">
+          <div class="d-flex justify-content-between small"><span>{{ c.number }}. {{ c.name }} <span class="text-secondary">{{ c.party }}</span></span><strong>{{ c.votes }}</strong></div>
+          <div class="bar-track"><div class="bar-fill" style="width: {{ c.pct }}%"></div></div>
+        </div>
+      {% empty %}<div class="text-secondary">No candidates.</div>{% endfor %}
+      <hr class="my-2">
+      <div class="small text-secondary">Local {{ row.local }} &middot; Other-place {{ row.outstation }} &middot; Turnout {{ row.turnout }}% of {{ row.registered }} registered</div>
+    </div>
+  </div></div>
+{% endfor %}
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Pending outstation requests ({{ pending_temp|length }})</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Voter</th><th>From</th><th>To</th></tr></thead><tbody>
+    {% for r in pending_temp %}<tr><td>{{ r.voter.name }}</td><td>{{ r.voter.home_district.name }}</td><td>{{ r.destination_district.name }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-secondary">Nothing pending.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Pending change requests ({{ pending_changes|length }})</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Voter</th><th>Type</th></tr></thead><tbody>
+    {% for r in pending_changes %}<tr><td>{{ r.voter.name }}</td><td>{{ r.get_kind_display }}</td></tr>
+    {% empty %}<tr><td colspan="2" class="text-secondary">Nothing pending.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Pending voter registrations - age check ({{ pending_registrations|length }})</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Voter</th><th>Date of birth</th><th>Constituency</th></tr></thead><tbody>
+    {% for v in pending_registrations %}<tr><td>{{ v.name }} <small class="text-secondary">{{ v.voter_id }}</small></td><td>{{ v.date_of_birth|date:"d M Y" }}</td><td>{{ v.constituency.name }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-secondary">Nothing pending.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Approved booth slots</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Voter</th><th>Booth</th><th>Time</th></tr></thead><tbody>
+    {% for r in approved_slots %}<tr><td>{{ r.voter.name }}</td><td>{{ r.booth.name }} ({{ r.destination_district.name }})</td><td>{{ r.slot_time|time:"h:i A" }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-secondary">No approved slots.</td></tr>{% endfor %}</tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Open complaints ({{ open_complaints|length }})</div>
+    <div class="table-responsive"><table class="table mb-0"><thead><tr><th>Voter</th><th>Subject</th></tr></thead><tbody>
+    {% for c in open_complaints %}<tr><td>{{ c.voter.name }}</td><td>{{ c.subject }}</td></tr>
+    {% empty %}<tr><td colspan="2" class="text-secondary">No open complaints.</td></tr>{% endfor %}</tbody></table></div></div></div>
+</div>
+{% endblock %}

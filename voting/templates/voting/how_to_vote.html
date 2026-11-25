@@ -1,0 +1,43 @@
+{% extends "voting/base.html" %}
+{% load static %}
+{% block title %}How to vote{% endblock %}
+{% block content %}
+<div class="mb-4">
+  <h2 class="mb-1">How to vote</h2>
+  <p class="tamil text-secondary mb-0">வாக்களிப்பது எப்படி</p>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-8 mx-auto">
+    <div class="guide-media">
+      <div class="small fw-semibold mb-2">Watch the animation / அனிமேஷனைப் பாருங்கள்</div>
+      <video controls preload="metadata" poster="{% static 'guide/video_poster.jpg' %}">
+        <source src="{% static 'guide/how_to_vote.mp4' %}" type="video/mp4">
+        Your browser does not support video playback.
+      </video>
+    </div>
+  </div>
+</div>
+
+<ul class="nav nav-pills mb-3" role="tablist">
+  <li class="nav-item"><button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-en" type="button">English</button></li>
+  <li class="nav-item"><button class="nav-link tamil" data-bs-toggle="pill" data-bs-target="#tab-ta" type="button">தமிழ்</button></li>
+</ul>
+<div class="tab-content">
+  <div class="tab-pane fade show active" id="tab-en">
+    {% for s in steps %}
+      <div class="step-card"><div class="step-no">{{ forloop.counter }}</div><div><h3>{{ s.en_title }}</h3><p>{{ s.en_text }}</p></div></div>
+    {% endfor %}
+  </div>
+  <div class="tab-pane fade tamil" id="tab-ta">
+    {% for s in steps %}
+      <div class="step-card"><div class="step-no">{{ forloop.counter }}</div><div><h3>{{ s.ta_title }}</h3><p>{{ s.ta_text }}</p></div></div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="alert alert-warning mt-3">
+  <strong>Note:</strong> your vote is secret. The slip printed for the staff shows your transaction ID and constituency, never your choice.
+  <span class="tamil d-block">உங்கள் வாக்கு ரகசியமானது. ஊழியர்களுக்கான சீட்டில் பரிவர்த்தனை எண்ணும் தொகுதியும் மட்டுமே இருக்கும்; நீங்கள் யாருக்கு வாக்களித்தீர்கள் என்பது இருக்காது.</span>
+</div>
+{% endblock %}

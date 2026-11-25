@@ -1,0 +1,38 @@
+{% extends "voting/base.html" %}
+{% block content %}
+<section class="hero mb-4">
+  <h1 class="display-6 fw-bold">Voter services and RFID voting, in one system</h1>
+  <p class="lead mb-4">Register, request changes, apply for outstation voting, and vote at the booth with your RFID card.</p>
+  <div class="d-flex flex-wrap gap-2">
+    {% if user.is_authenticated %}
+      <a class="btn btn-warning btn-lg" href="{% if user.is_staff %}{% url 'control_room' %}{% else %}{% url 'dashboard' %}{% endif %}">Go to dashboard</a>
+    {% else %}
+      <a class="btn btn-warning btn-lg" href="{% url 'register' %}">Register as a voter</a>
+      <a class="btn btn-outline-light btn-lg" href="{% url 'login' %}">Login</a>
+    {% endif %}
+    <a class="btn btn-outline-light btn-lg" href="{% url 'how_to_vote' %}">How to vote / வாக்களிப்பது எப்படி</a>
+  </div>
+</section>
+
+{% if election %}
+<div class="alert alert-primary d-flex justify-content-between flex-wrap">
+  <span><strong>{{ election.name }}</strong> is active.</span>
+  <span>Election date: <strong>{{ election.vote_date|date:"d M Y" }}</strong></span>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-md-4"><div class="card h-100"><div class="card-body">
+    <h5>1. Voter services</h5>
+    <p class="mb-0 text-secondary">Send name, address or constituency change requests and complaints. Only administrator-approved changes are saved.</p>
+  </div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body">
+    <h5>2. Outstation voting</h5>
+    <p class="mb-0 text-secondary">Staying in another district? Apply 30+ days before the election with a temporary address and proof. A booth slot is allotted after approval.</p>
+  </div></div></div>
+  <div class="col-md-4"><div class="card h-100"><div class="card-body">
+    <h5>3. RFID booth voting</h5>
+    <p class="mb-0 text-secondary">Scan your card, choose from your constituency's candidates on the keypad and confirm with #.</p>
+  </div></div></div>
+</div>
+{% endblock %}

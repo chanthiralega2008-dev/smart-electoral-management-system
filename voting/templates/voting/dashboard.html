@@ -1,0 +1,85 @@
+{% extends "voting/base.html" %}
+{% block title %}My dashboard{% endblock %}
+{% block content %}
+{% if voter.registration_status == 'pending' %}
+<div class="alert alert-warning"><strong>Registration pending.</strong> The administrator is verifying your age proof (18+). Outstation and change requests open after approval.</div>
+{% elif voter.registration_status == 'rejected' %}
+<div class="alert alert-danger"><strong>Registration rejected.</strong> {{ voter.registration_note }}</div>
+{% endif %}
+<div class="row g-3 mb-3">
+  <div class="col-lg-8">
+    <div class="card h-100"><div class="card-body">
+      <div class="d-flex justify-content-between flex-wrap gap-2">
+        <div>
+          <h4 class="mb-1">{{ voter.name }}</h4>
+          <div class="text-secondary">Voter ID {{ voter.voter_id }} &middot; {{ voter.phone }}</div>
+        </div>
+        <div>
+          {% if voted %}<span class="badge text-bg-success fs-6">Vote recorded</span>
+          {% else %}<span class="badge text-bg-secondary fs-6">Not voted yet</span>{% endif %}
+        </div>
+      </div>
+      <hr>
+      <div class="row small">
+        <div class="col-sm-6 mb-2"><div class="text-secondary">Constituency</div><strong>{{ voter.constituency.name }}</strong></div>
+        <div class="col-sm-6 mb-2"><div class="text-secondary">Home district</div><strong>{{ voter.home_district.name }}</strong></div>
+        <div class="col-sm-6 mb-2"><div class="text-secondary">You vote in</div><strong>{{ voting_place.name }}</strong>{% if voting_place != voter.home_district %} <span class="badge text-bg-info">Outstation</span>{% endif %}</div>
+        <div class="col-sm-6 mb-2"><div class="text-secondary">Polling booth</div>{% if voter.booth %}<strong>{{ voter.booth.name }}</strong>{% else %}<span class="text-secondary">Any booth of your district</span>{% endif %}</div>
+        <div class="col-sm-6 mb-2"><div class="text-secondary">RFID card</div>
+          {% if voter.rfid_uid %}<strong>Mapped ({{ voter.rfid_uid }})</strong>{% else %}<span class="text-danger">Not mapped yet. The administrator will map your card.</span>{% endif %}
+        </div>
+        <div class="col-sm-12"><div class="text-secondary">Address</div>{{ voter.address }}</div>
+      </div>
+    </div></div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card h-100"><div class="card-body">
+      <h6 class="text-secondary">Election</h6>
+      {% if election %}<h5>{{ election.name }}</h5><p class="mb-0">Date: <strong>{{ election.vote_date|date:"d M Y" }}</strong></p>
+      {% else %}<p class="mb-0">No active election.</p>{% endif %}
+      <hr>
+      <a class="btn btn-outline-primary btn-sm w-100" href="{% url 'how_to_vote' %}">How to vote / வாக்களிப்பது எப்படி</a>
+    </div></div>
+  </div>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4"><a class="btn btn-primary w-100 py-3" href="{% url 'temp_request_new' %}">Outstation voting request</a></div>
+  <div class="col-md-4"><a class="btn btn-outline-primary w-100 py-3" href="{% url 'change_request_new' %}">Name / address / constituency change</a></div>
+  <div class="col-md-4"><a class="btn btn-outline-primary w-100 py-3" href="{% url 'complaint_new' %}">Register a complaint</a></div>
+</div>
+
+<div class="card mb-3"><div class="card-header">Outstation voting requests</div>
+<div class="table-responsive"><table class="table mb-0">
+  <thead><tr><th>District</th><th>Status</th><th>Booth</th><th>Time slot</th><th>Note</th></tr></thead>
+  <tbody>
+  {% for r in temp_requests %}
+    <tr><td>{{ r.destination_district.name }}</td><td>{% include "voting/_status.html" with status=r.status %}</td>
+        <td>{{ r.booth.name|default:"-" }}</td><td>{% if r.slot_time %}{{ r.slot_time|time:"h:i A" }}{% else %}-{% endif %}</td><td>{{ r.admin_note|default:"" }}</td></tr>
+  {% empty %}<tr><td colspan="5" class="text-secondary">No requests yet.</td></tr>{% endfor %}
+  </tbody></table></div></div>
+
+<div class="row g-3">
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Change requests</div>
+  <div class="table-responsive"><table class="table mb-0">
+    <thead><tr><th>Type</th><th>New value</th><th>Status</th></tr></thead><tbody>
+    {% for r in change_requests %}
+      <tr><td>{{ r.get_kind_display }}</td><td>{% if r.kind == 'constituency' %}{{ r.new_constituency.name }}{% elif r.kind == 'booth' %}{{ r.new_booth.name }}{% else %}{{ r.new_value|truncatechars:40 }}{% endif %}</td><td>{% include "voting/_status.html" with status=r.status %}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-secondary">No requests yet.</td></tr>{% endfor %}
+    </tbody></table></div></div></div>
+  <div class="col-lg-6"><div class="card h-100"><div class="card-header">Complaints</div>
+  <div class="table-responsive"><table class="table mb-0">
+    <thead><tr><th>Subject</th><th>Status</th><th>Reply</th></tr></thead><tbody>
+    {% for c in complaints %}
+      <tr><td>{{ c.subject }}</td><td>{% include "voting/_status.html" with status=c.status %}</td><td>{{ c.reply|default:"-"|truncatechars:50 }}</td></tr>
+    {% empty %}<tr><td colspan="3" class="text-secondary">No complaints.</td></tr>{% endfor %}
+    </tbody></table></div></div></div>
+</div>
+
+<div class="card mt-3"><div class="card-header">Notifications</div>
+  <ul class="list-group list-group-flush">
+  {% for n in notifications %}
+    <li class="list-group-item d-flex justify-content-between gap-3"><span>{{ n.message }}</span><small class="text-secondary text-nowrap">{{ n.created_at|date:"d M, h:i A" }}</small></li>
+  {% empty %}<li class="list-group-item text-secondary">No notifications.</li>{% endfor %}
+  </ul></div>
+{% endblock %}

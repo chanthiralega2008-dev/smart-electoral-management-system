@@ -1,0 +1,1 @@
+<span class="badge text-bg-{% if status == 'approved' or status == 'resolved' %}success{% elif status == 'rejected' %}danger{% else %}warning{% endif %}">{{ status|capfirst }}</span>
